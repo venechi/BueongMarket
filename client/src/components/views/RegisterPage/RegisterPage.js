@@ -109,6 +109,7 @@ function RegisterPage(props) {
                 placeholder="E-mail"
                 onChange={onEmailChangeHandler}
                 allowClear
+                maxLength={255}
                 addonAfter={
                   <Button type="primary" size="small" onClick={onCheckID}>
                     중복 확인
@@ -128,6 +129,7 @@ function RegisterPage(props) {
                 placeholder="Password"
                 value={Password}
                 id="password"
+                maxLength={255}
                 onChange={onChangeHandler}
                 allowClear
               />
@@ -136,16 +138,17 @@ function RegisterPage(props) {
             <label>비밀번호 확인</label>
             <Form.Item
               name="confirmPW"
+              validateStatus={IsPWMatched ? "success" : "error"}
               rules={[
                 { required: true, message: "비밀번호를 한번 더 입력해 주세요" },
               ]}
-              validateStatus={IsPWMatched ? "success" : "error"}
               help={IsPWMatched ? null : "비밀번호가 다릅니다"}
             >
               <Input.Password
                 placeholder="Confirm Password"
                 value={ConfirmPassword}
                 id="confirmPassword"
+                maxLength={255}
                 onChange={onChangeHandler}
                 allowClear
               />
@@ -160,6 +163,7 @@ function RegisterPage(props) {
                 id="name"
                 value={Name}
                 placeholder="name"
+                maxLength={255}
                 onChange={onChangeHandler}
                 allowClear
               />
@@ -189,6 +193,7 @@ function RegisterPage(props) {
                 value={NickName}
                 placeholder="Nickname"
                 onChange={onNicknameChangeHandler}
+                maxLength={255}
                 allowClear
                 addonAfter={
                   <Button type="primary" size="small" onClick={onCheckNickname}>

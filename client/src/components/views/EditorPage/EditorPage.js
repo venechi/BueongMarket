@@ -78,6 +78,7 @@ function EditorPage(props) {
               exp_date: moment(item.exp_date),
               content: item.content,
               isLoaded: true,
+              item_class: item.item_class,
             });
           } else return props.history.push("/");
         });
@@ -203,10 +204,7 @@ function EditorPage(props) {
         </Divider>
 
         <Form onFinish={handleUpload} initialValues={defaultValue}>
-          <Form.Item
-            name="item_class"
-            label="공구 대상 선택"
-          >
+          <Form.Item name="item_class" label="공구 대상 선택">
             <Radio.Group>
               <Radio value={0}>지역 대상 공구</Radio>
               <Radio value={1}>전국 대상 공구</Radio>

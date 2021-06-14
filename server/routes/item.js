@@ -21,9 +21,14 @@ const deleteItem = (userID, itemID, cb) => {
             `DELETE FROM content WHERE id=${itemID}`,
             (error2, results, fields) => {
               db.query(
-                `DELETE FROM item WHERE id=${itemID}`,
+                `DELETE FROM comments WHERE item_id=${itemID}`,
                 (error3, results, fields) => {
-                  return cb(err || error1 || error2 || error3);
+                  db.query(
+                    `DELETE FROM item WHERE id=${itemID}`,
+                    (error4, results, fields) => {
+                      return cb(err || error1 || error2 || error3 || error4);
+                    }
+                  );
                 }
               );
             }
@@ -67,6 +72,8 @@ router.post("/update", auth, upload.array(), function (req, res) {
   const item = JSON.parse(req.body.item);
   item.title = sanitizeHtml(item.title);
   item.content = sanitizeHtml(item.content);
+  if (item.title === "" || item.content === "")
+    return res.json({ isUpdateSuccess: false });
   if (item.itemID === "new") {
     //새 글 작성
     db.query(
@@ -356,6 +363,22 @@ router.post("/update", auth, upload.array(), function (req, res) {
   }
 });
 
+//댓글 작성
+router.post("/comment", auth, function (req, res) {
+  var userID = req.user.id_code;
+  req.body.comment = sanitizeHtml(req.body.comment);
+  if (req.body.comment === "") return res.json({ isSuccess: false });
+  db.query(
+    req.body.parent_id
+      ? `INSERT INTO comments(parent_id, item_id, user_id, content, reg_date) VALUES (${req.body.parent_id}, ${req.body.item_id}, ${userID}, '${req.body.comment}', now())`
+      : `INSERT INTO comments(item_id, user_id, content, reg_date) VALUES (${req.body.item_id}, ${userID}, '${req.body.comment}', now())`,
+    (error, results, fields) => {
+      if (error) return res.json({ isSuccess: false });
+      return res.json({ isSuccess: true });
+    }
+  );
+});
+
 //아이템 정보 요청
 router.get("/:itemId", function (req, res) {
   var id = req.params.itemId;
@@ -369,11 +392,18 @@ router.get("/:itemId", function (req, res) {
         `SELECT * FROM photos WHERE id = ${id}`,
         function (error, photos, fields) {
           if (error) return res.json({ isSuccess: false });
-          return res.json({
-            isSuccess: true,
-            item: results[0],
-            photoList: photos,
-          });
+          db.query(
+            `SELECT id_code, comment_id, parent_id, nickname, content, reg_date FROM users, comments WHERE item_id=${id} and (comments.user_id = users.id_code)`,
+            function (error, comments, fields) {
+              if (error) return res.json({ isSuccess: false });
+              return res.json({
+                isSuccess: true,
+                item: results[0],
+                photoList: photos,
+                comments: comments,
+              });
+            }
+          );
         }
       );
     }

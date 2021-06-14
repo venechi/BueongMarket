@@ -4,6 +4,7 @@ import {
   UPDATE_ITEM,
   DELETE_ITEM,
   GET_ITEMS_OF_USER,
+  UPDATE_COMMENT,
 } from "../_actions/types";
 
 export default function foo(state = {}, action) {
@@ -21,6 +22,9 @@ export default function foo(state = {}, action) {
       return { ...state, res: action.payload };
 
     case GET_ITEMS_OF_USER:
+      return { ...state, res: action.payload };
+
+    case UPDATE_COMMENT:
       return { ...state, res: action.payload };
 
     default:

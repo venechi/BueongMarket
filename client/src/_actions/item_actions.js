@@ -5,6 +5,7 @@ import {
   UPDATE_ITEM,
   DELETE_ITEM,
   GET_ITEMS_OF_USER,
+  UPDATE_COMMENT,
 } from "./types";
 
 export function getItems(searchQuery) {
@@ -51,6 +52,16 @@ export function getItemsOfUser() {
   const request = axios.get(`/api/allitem`).then((res) => res.data);
   return {
     type: GET_ITEMS_OF_USER,
+    payload: request,
+  };
+}
+
+export function updateComment(dataToSubmit) {
+  const request = axios
+    .post(`/api/item/comment`, dataToSubmit)
+    .then((res) => res.data);
+  return {
+    type: UPDATE_COMMENT,
     payload: request,
   };
 }

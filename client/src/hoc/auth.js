@@ -14,6 +14,7 @@ export default function foo(SpecificComponent, option, adminRoute = null) {
       dispatch(auth()).then((res) => {
         if (!res.payload.isAuth) {
           //비로그인
+          localStorage.removeItem("user");
           if (option) {
             props.history.push("/login");
           }

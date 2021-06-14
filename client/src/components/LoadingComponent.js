@@ -4,7 +4,7 @@ import "antd/dist/antd.css";
 
 function LoadingComponent() {
   return (
-    <div style={{ "text-align": "center", padding: "50px" }}>
+    <div style={{ textAlign: "center", padding: "50px" }}>
       <Spin tip="Loading..."></Spin>
     </div>
   );

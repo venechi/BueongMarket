@@ -1,69 +1,95 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import axios from "axios";
+import { useParams, withRouter } from "react-router";
 import { Carousel, Image, Button } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import LoadingComponent from "../../LoadingComponent";
 import CONSTANTS from "../../Constants";
+import MyHeader from "../../MyHeader";
+import { useDispatch } from "react-redux";
+import { getItem } from "../../../_actions/item_actions";
 
-function ItemViewPage() {
-  const size = "600px";
+function ItemViewPage(props) {
+  const size = "80vw";
   let { itemId } = useParams();
   const [itemInfo, setitemInfo] = useState();
+  const dispatch = useDispatch();
   useEffect(() => {
-    axios.get(`/api/item/${itemId}`).then((res) => {
-      setitemInfo(res.data);
+    dispatch(getItem(itemId)).then((res) => {
+      if (res.payload.isSuccess) {
+        setitemInfo(res.payload);
+      } else return props.history.push("/");
     });
-  }, [itemId]);
+  }, [dispatch, itemId, props.history]);
 
-  
-  if (itemInfo) {
-    document.title = `${CONSTANTS.MARKET_NAME} - ${itemInfo.item.title} :: 상세페이지`
+  function PrevArrow(props) {
+    const { className, style, onClick } = props;
     return (
-      <div style={{ textAlign: "center", marginTop:"100px"}}>
-        <div style={{ width: size, display: "inline-block" }}>
-          <Carousel
-            arrows
-            draggable
-            prevArrow={
-              <Button icon={<LeftOutlined style={{ color: "gray" }} />} />
-            }
-            nextArrow={
-              <Button icon={<RightOutlined style={{ color: "gray" }} />} />
-            }
-          >
-            {itemInfo.photoList.map((file) => (
-              <div>
-                <Image
-                  src={`/devResources/${file.filename}`}
-                  preview={false}
-                  lineHeight={size}
-                  width={size}
-                  height={size}
-                />
-              </div>
-            ))}
-          </Carousel>
-        </div>
+      <Button
+        className={className}
+        style={{ ...style, display: "block" }}
+        onClick={onClick}
+        icon={<LeftOutlined style={{ color: "gray" }} />}
+      />
+    );
+  }
+
+  function NextArrow(props) {
+    const { className, style, onClick } = props;
+    return (
+      <Button
+        className={className}
+        style={{ ...style, display: "block" }}
+        onClick={onClick}
+        icon={<RightOutlined style={{ color: "gray" }} />}
+      />
+    );
+  }
+
+  if (itemInfo) {
+    console.log(itemInfo);
+    document.title = `${CONSTANTS.MARKET_NAME} - ${itemInfo.item.title} :: 상세페이지`;
+    return (
+      <MyHeader>
         <div style={{ textAlign: "center" }}>
-          <div
-            style={{ display: "inline-block", width: size, textAlign: "left" }}
-          >
-            <h1>{itemInfo.item.title}</h1>
-            <p>
+          <div style={{ width: size, display: "inline-block" }}>
+            <Carousel
+              arrows
+              draggable
+              prevArrow={<PrevArrow />}
+              nextArrow={<NextArrow />}
+            >
+              {itemInfo.photoList.map((file) => (
+                <div key={file.filename}>
+                  <Image
+                    src={`/api/images/${itemInfo.item.id_code}/${itemId}/${file.filename}`}
+                    preview={false}
+                    width={size}
+                    height={size}
+                  />
+                </div>
+              ))}
+            </Carousel>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                display: "inline-block",
+                width: size,
+                textAlign: "left",
+              }}
+            >
+              <h1>{itemInfo.item.title}</h1>
               <div>{`가격: ${itemInfo.item.price}원`}</div>
               <div>{`🧭 ${itemInfo.item.loc}`}</div>
               <div>{`⏰ ${itemInfo.item.reg_date} ~ ${itemInfo.item.exp_date}`}</div>
-            </p>
-            <p>
-              <div>{itemInfo.item.content}</div>
-            </p>
+              <p>{itemInfo.item.content}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </MyHeader>
     );
   } else return <LoadingComponent />;
 }
 
-export default ItemViewPage;
+export default withRouter(ItemViewPage);

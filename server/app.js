@@ -7,6 +7,7 @@ var bodyParser = require("body-parser");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var itemRouter = require("./routes/item");
+var imagesRouter = require("./routes/images");
 
 var app = express();
 
@@ -21,5 +22,6 @@ app.use(bodyParser.json());
 app.use("/api/", indexRouter);
 app.use("/api/users/", usersRouter);
 app.use("/api/item/", itemRouter);
+app.use("/api/images", imagesRouter);
 
 module.exports = app;

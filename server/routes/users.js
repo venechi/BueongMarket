@@ -38,7 +38,7 @@ router.post("/login", function (req, res, next) {
 router.get("/logout", function (req, res, next) {
   let token = req.cookies.x_auth;
   User.logout(token, (result) => {
-    res.json(result);
+    res.clearCookie("x_auth").json(result);
   });
 });
 

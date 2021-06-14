@@ -15,9 +15,10 @@ function LoginStatusComponent(props) {
   }, [setuser]);
 
   const logoutHandler = () => {
-    dispatch(logout()).then((res) => console.log(res));
-    localStorage.clear();
-    props.history.push("/");
+    dispatch(logout()).then((res) => {
+      localStorage.removeItem("user");
+      props.history.push("/logout");
+    });
   };
 
   if (user)

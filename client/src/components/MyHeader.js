@@ -8,7 +8,7 @@ const { Header, Content, Footer } = Layout;
 function MyHeader(props) {
   return (
     <Layout>
-      <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
+      <Header style={{ zIndex: 1, width: "100%" }}>
         <a href="/">
           <div
             style={{
@@ -34,7 +34,6 @@ function MyHeader(props) {
             {CONSTANTS.MARKET_NAME}
           </div>
         </a>
-        {/* todo: 로그인 및 로그아웃 시 상태가 바로 반영되지 않는 점 수정할 것 */}
         <LoginStatusComponent/>
         <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["1"]}>
           <Menu.Item key="1">

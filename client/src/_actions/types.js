@@ -5,3 +5,5 @@ export const CHECK_ID = "check_id";
 export const CHECK_NICKNAME = "check_nickname";
 export const AUTH_USER = "auth_user";
 export const GET_ITEMS = "get_items";
+export const GET_ITEM = "get_item";
+export const UPDATE_ITEM = "update_item";

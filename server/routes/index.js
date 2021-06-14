@@ -1,9 +1,24 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
+var SqlString = require("sqlstring");
+var db = require("../public/utils/db");
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+router.get("/", function (req, res, next) {
+  var query;
+  var sqlQuery;
+  if (!req.query.query)
+    sqlQuery = "SELECT * FROM item ORDER BY id DESC LIMIT 10";
+  else {
+    query = SqlString.escape(req.query.query);
+    query = query.substring(1, query.length - 1);
+    sqlQuery = `SELECT * FROM item WHERE title LIKE ${
+      "'%" + query + "%'"
+    } ORDER BY id DESC`;
+  }
+  db.query(sqlQuery, function (error, results, fields) {
+    if (error) return res.status(500).json(error);
+    return res.json(results);
+  });
 });
 
 module.exports = router;

@@ -5,6 +5,8 @@ import { withRouter } from "react-router-dom";
 import { Input, Button, Form } from "antd";
 import "antd/dist/antd.css";
 import MyHeader from "../../MyHeader";
+import CONSTANTS from "../../Constants";
+
 
 function LoginPage(props) {
   const dispatch = useDispatch();
@@ -30,6 +32,7 @@ function LoginPage(props) {
     });
   };
 
+  document.title = `${CONSTANTS.MARKET_NAME} :: 로그인`;
   return (
     <MyHeader>
       <div

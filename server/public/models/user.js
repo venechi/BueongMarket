@@ -1,6 +1,6 @@
 const db = require("../utils/db");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+var randomToken = require("random-token").create("jasfoiwe2#@$)(T#GJAS nlj");
 const saltRounds = 10;
 
 var User = {
@@ -40,7 +40,7 @@ var User = {
                     error: true,
                   });
                 if (results.length === 0) {
-                  token = jwt.sign(user.id_code, "secretToken");
+                  var token = randomToken(32);
                   db.query(
                     `INSERT INTO login_users VALUES (${user.id_code}, "${token}")`,
                     (error, results, fields) => {
@@ -49,18 +49,32 @@ var User = {
                           loginSuccess: false,
                           error: true,
                         });
-                      user.token = token;
                       return cb({
-                        loginSuccess: true,
-                        user: user,
+                        token: token,
+                        payload: {
+                          loginSuccess: true,
+                          user: {
+                            id_code: user.id_code,
+                            id: user.id,
+                            name: user.name,
+                            nickname: user.nickname,
+                          },
+                        },
                       });
                     }
                   );
                 } else {
-                  user.token = results[0].token;
                   return cb({
-                    loginSuccess: true,
-                    user: user,
+                    token: results[0].token,
+                    payload: {
+                      loginSuccess: true,
+                      user: {
+                        id_code: user.id_code,
+                        id: user.id,
+                        name: user.name,
+                        nickname: user.nickname,
+                      },
+                    },
                   });
                 }
               }

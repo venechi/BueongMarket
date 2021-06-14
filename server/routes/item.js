@@ -36,14 +36,13 @@ const deleteItem = (userID, itemID, cb) => {
 router.get("/delete/:itemId", auth, function (req, res) {
   var itemID = req.params.itemId;
   var userID = req.user.id_code;
-  if (isNaN(parseInt(id, 10))) return res.json({ isDeleteSuccess: false });
   db.query(
     `SELECT * FROM item WHERE id=${itemID}`,
     (error, results, fields) => {
       if (results.length === 0 || results[0].id_code !== userID)
         return res.json({ isDeleteSuccess: false });
       deleteItem(userID, itemID, (err) => {
-        return res.json({ isUpdateSuccess: err ? false : true });
+        return res.json({ isDeleteSuccess: err ? false : true });
       });
     }
   );
@@ -122,12 +121,12 @@ router.post("/update", auth, upload.array(), function (req, res) {
                           db.query(
                             `SELECT * FROM photos WHERE id=${item.itemID}`,
                             (error, results, fields) => {
-                              var path = `public/fileserver/${userID}/${item.itemID}/`;
+                              let path = `public/fileserver/${userID}/${item.itemID}/`;
                               sharp(path + results[0].filename)
                                 .resize(300, 300, "!")
                                 .toFile(path + "thumbnail.jpg", (err, info) => {
+                                  //todo: 섬네일 경로 재지정할것(사용자가 tumbnail.jpg를 업로드해도 정상작동하도록)
                                   if (err) {
-                                    console.log(err);
                                     deleteItem(userID, item.itemID, () => {
                                       return res.json({
                                         isUpdateSuccess: false,
@@ -162,7 +161,152 @@ router.post("/update", auth, upload.array(), function (req, res) {
       }
     );
   } else {
-    //글 수정
+    let toPreserve = files
+      .map((file) => {
+        if (file.status) return file.name;
+      })
+      .filter((e) => e);
+    let newFiles = files
+      .map((file) => {
+        if (!file.status) return { name: file.name, thumbUrl: file.thumbUrl };
+      })
+      .filter((e) => e);
+
+    let itemID = item.itemID;
+    db.query(
+      `SELECT * FROM item WHERE id=${itemID}`,
+      (error, results, fields) => {
+        if (error || results.length === 0)
+          return res.json({ isUpdateSuccess: false });
+        db.query(
+          `SELECT * FROM photos WHERE id=${itemID}`,
+          (error, results, fields) => {
+            if (error) return res.json({ isUpdateSuccess: false });
+            let toDelete = results.map((result) => {
+              return result.filename;
+            });
+            for (let i = 0; i < toPreserve.length; ++i) {
+              let pos = toDelete.indexOf(toPreserve[i]);
+              if (pos !== -1) toDelete.splice(pos, 1);
+            }
+            Promise.all(
+              toDelete.length !== 0
+                ? toDelete.map((filename) => {
+                    fs.rm(
+                      `public/fileserver/${userID}/${itemID}/${filename}`,
+                      (fserr) => {
+                        return db.query(
+                          `DELETE FROM photos WHERE id=${itemID} AND filename='${filename}'`,
+                          (error, results, fields) => {
+                            return new Promise((resolve, reject) => {
+                              if (fserr || error) reject(false);
+                              else resolve(true);
+                            });
+                          }
+                        );
+                      }
+                    );
+                  })
+                : [
+                    new Promise((resolve, reject) => {
+                      resolve(true);
+                    }),
+                  ]
+            )
+              .then(() => {
+                db.query(
+                  `UPDATE item SET title='${item.title}', price=${item.price}, exp_date='${item.exp_date}' WHERE id=${itemID}`,
+                  (error, results, fields) => {
+                    if (error) return res.json({ isUpdateSuccess: false });
+                    db.query(
+                      `UPDATE content SET content='${item.content}' WHERE id=${itemID}`,
+                      (error, results, fields) => {
+                        if (error) return res.json({ isUpdateSuccess: false });
+                        let path = `public/fileserver/${userID}/${itemID}/`;
+                        Promise.all(
+                          newFiles.length !== 0
+                            ? newFiles.map((file) => {
+                                fs.writeFile(
+                                  `${path}/${file.name}`,
+                                  file.thumbUrl.replace(
+                                    /^data:image\/png;base64,/,
+                                    ""
+                                  ),
+                                  "base64",
+                                  (fserr) => {
+                                    return db.query(
+                                      `INSERT INTO photos VALUES(${itemID}, "${file.name}");`,
+                                      (error, results, fields) => {
+                                        return new Promise(
+                                          (resolve, reject) => {
+                                            if (fserr || error) reject(false);
+                                            else resolve(true);
+                                          }
+                                        );
+                                      }
+                                    );
+                                  }
+                                );
+                              })
+                            : [
+                                new Promise((resolve, reject) => {
+                                  resolve(true);
+                                }),
+                              ]
+                        )
+                          .then(() => {
+                            if (
+                              toDelete.length === 0 &&
+                              newFiles.length === 0
+                            )
+                              return res.json({
+                                isUpdateSuccess: true,
+                                itemId: itemID,
+                              });
+                            else
+                              db.query(
+                                `SELECT * FROM photos WHERE id=${item.itemID}`,
+                                (error, results, fields) => {
+                                  if (error)
+                                    return res.json({ isUpdateSuccess: false });
+                                  fs.rmSync(path + "thumbnail.jpg", {
+                                    force: true,
+                                  });
+                                  sharp(path + results[0].filename)
+                                    .resize(300, 300, "!")
+                                    .toFile(
+                                      path + "thumbnail.jpg",
+                                      (err, info) => {
+                                        //todo: 섬네일 경로 재지정할것(사용자가 tumbnail.jpg를 업로드해도 정상작동하도록)
+                                        if (err)
+                                          return res.json({
+                                            isUpdateSuccess: false,
+                                          });
+                                        else
+                                          return res.json({
+                                            isUpdateSuccess: true,
+                                            itemId: itemID,
+                                          });
+                                      }
+                                    );
+                                }
+                              );
+                          })
+                          .catch(() => {
+                            return res.json({ isUpdateSuccess: false });
+                          });
+                      }
+                    );
+                  }
+                );
+              })
+              .catch(() => {
+                return res.json({ isUpdateSuccess: false });
+              });
+          }
+        );
+      }
+    );
   }
 });
 

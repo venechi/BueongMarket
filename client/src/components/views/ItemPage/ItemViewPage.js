@@ -7,20 +7,22 @@ import LoadingComponent from "../../LoadingComponent";
 import CONSTANTS from "../../Constants";
 import MyHeader from "../../MyHeader";
 import { useDispatch } from "react-redux";
-import { getItem } from "../../../_actions/item_actions";
+import { getItem, deleteItem } from "../../../_actions/item_actions";
 
 function ItemViewPage(props) {
   const size = "80vw";
   let { itemId } = useParams();
+  const [user, setuser] = useState();
   const [itemInfo, setitemInfo] = useState();
   const dispatch = useDispatch();
   useEffect(() => {
+    setuser(JSON.parse(localStorage.getItem("user")));
     dispatch(getItem(itemId)).then((res) => {
       if (res.payload.isSuccess) {
         setitemInfo(res.payload);
       } else return props.history.push("/");
     });
-  }, [dispatch, itemId, props.history]);
+  }, [dispatch, itemId, props.history, setuser]);
 
   function PrevArrow(props) {
     const { className, style, onClick } = props;
@@ -47,8 +49,7 @@ function ItemViewPage(props) {
   }
 
   if (itemInfo) {
-    console.log(itemInfo);
-    document.title = `${CONSTANTS.MARKET_NAME} - ${itemInfo.item.title} :: 상세페이지`;
+    document.title = `${CONSTANTS.MARKET_NAME} :: 상세페이지 - ${itemInfo.item.title}`;
     return (
       <MyHeader>
         <div style={{ textAlign: "center" }}>
@@ -86,6 +87,41 @@ function ItemViewPage(props) {
               <p>{itemInfo.item.content}</p>
             </div>
           </div>
+          {user ? (
+            itemInfo.item.id_code === user.id_code ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ width: size, display: "flex" }}>
+                  <span style={{ width: "50%", display: "inline-block" }}>
+                    <Button type="primary" block href={`/editor/${itemId}`}>
+                      수정
+                    </Button>
+                  </span>
+                  <span style={{ width: "50%", display: "inline-block" }}>
+                    <Button
+                      type="primary"
+                      block
+                      danger
+                      onClick={() => {
+                        dispatch(deleteItem(itemId)).then((res) => {
+                          if (res.payload.isDeleteSuccess)
+                            return props.history.push("/");
+                          else alert("알수 없는 에러");
+                        });
+                      }}
+                    >
+                      삭제
+                    </Button>
+                  </span>
+                </div>
+              </div>
+            ) : null
+          ) : null}
         </div>
       </MyHeader>
     );

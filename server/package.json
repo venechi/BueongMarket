@@ -11,10 +11,10 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
-    "jsonwebtoken": "^8.5.1",
     "morgan": "~1.9.1",
     "multer": "^1.4.2",
     "mysql": "^2.18.1",
+    "random-token": "^0.0.8",
     "sharp": "^0.28.2",
     "sqlstring": "^2.3.2"
   }

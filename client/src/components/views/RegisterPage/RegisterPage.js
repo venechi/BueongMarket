@@ -9,6 +9,7 @@ import {
   checkNickname,
 } from "../../../_actions/user_actions";
 import MyHeader from "../../MyHeader";
+import CONSTANTS from "../../Constants";
 
 function RegisterPage(props) {
   const dispatch = useDispatch();
@@ -65,7 +66,7 @@ function RegisterPage(props) {
     });
   };
 
-  //todo: 이메일과 별명 유일성 확인
+  document.title = `${CONSTANTS.MARKET_NAME} :: 회원가입`;
   return (
     <MyHeader>
       <div

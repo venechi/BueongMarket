@@ -1,5 +1,5 @@
 import axios from "axios";
-import { GET_ITEMS, GET_ITEM, UPDATE_ITEM } from "./types";
+import { GET_ITEMS, GET_ITEM, UPDATE_ITEM, DELETE_ITEM } from "./types";
 
 export function getItems(searchQuery) {
   let query = "/api";
@@ -27,6 +27,14 @@ export function updateItem(dataToSubmit) {
     .then((res) => res.data);
   return {
     type: UPDATE_ITEM,
+    payload: request,
+  };
+}
+
+export function deleteItem(itemId) {
+  const request = axios.get(`/api/item/delete/${itemId}`).then((res) => res.data);
+  return {
+    type: DELETE_ITEM,
     payload: request,
   };
 }

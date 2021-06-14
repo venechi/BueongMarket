@@ -1,4 +1,9 @@
-import { GET_ITEMS, GET_ITEM, UPDATE_ITEM } from "../_actions/types";
+import {
+  GET_ITEMS,
+  GET_ITEM,
+  UPDATE_ITEM,
+  DELETE_ITEM,
+} from "../_actions/types";
 
 export default function foo(state = {}, action) {
   switch (action.type) {
@@ -9,6 +14,9 @@ export default function foo(state = {}, action) {
       return { ...state, item: action.payload };
 
     case UPDATE_ITEM:
+      return { ...state, res: action.payload };
+
+    case DELETE_ITEM:
       return { ...state, res: action.payload };
 
     default:

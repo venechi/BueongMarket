@@ -31,7 +31,7 @@ router.post("/checknickname", function (req, res, next) {
 
 router.post("/login", function (req, res, next) {
   User.login(req.body.id, req.body.pw, (result) => {
-    res.cookie("x_auth", result.user.token).json(result);
+    res.cookie("x_auth", result.token).json(result.payload);
   });
 });
 

@@ -7,21 +7,34 @@ import "antd/dist/antd.css";
 import { Input, Divider, Button, Empty } from "antd";
 import CONSTANTS from "../../Constants";
 import MyHeader from "../../MyHeader";
+import InfiniteScroll from "react-infinite-scroll-component";
+import LoadingComponent from "../../LoadingComponent";
+
 const { Search } = Input;
 
 function LandingPage(props) {
   const dispatch = useDispatch();
-  const [items, setitems] = useState({});
   const [searchQuery, setsearchQuery] = useState();
+  const [count, setcount] = useState(0);
+  const [items, setitems] = useState([]);
+  const [hasMore, sethasMore] = useState(true);
+
+  const getMore = useCallback(() => {
+    if (hasMore) {
+      if (items.length > count) setcount(Math.min(count + 10, items.length));
+      else sethasMore(false);
+    }
+  }, [hasMore, items.length, count]);
 
   const search = useCallback(
     (query) => {
       dispatch(getItems(query)).then((res) => {
         setitems(res.payload);
         setsearchQuery(query);
+        getMore();
       });
     },
-    [dispatch]
+    [dispatch, getMore]
   );
 
   useEffect(() => {
@@ -62,16 +75,25 @@ function LandingPage(props) {
         {searchQuery ? `'${searchQuery}' 검색 결과` : "최근 등록된 공구"}
       </Divider>
       <div display="flex">
-        {Object.keys(items).length !== 0 ? (
-          Object.entries(items).map((item) => (
-            <ItemComponent key={item[1].id} item={item[1]} />
-          ))
+        {items.length !== 0 ? (
+          <InfiniteScroll
+            dataLength={count}
+            next={getMore}
+            hasMore={hasMore}
+            loader={<LoadingComponent />}
+          >
+            {items.slice(0, count).map((item) => (
+              <ItemComponent key={item.id} item={item} />
+            ))}
+          </InfiniteScroll>
         ) : (
           <Empty
             description={
               <span>
                 <div>등록된 공구가 없어요!</div>
-                <div>하단의 새 공구 만들기 버튼을 눌러 공구를 등록해 보세요!</div>
+                <div>
+                  하단의 새 공구 만들기 버튼을 눌러 공구를 등록해 보세요!
+                </div>
               </span>
             }
           />

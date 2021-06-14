@@ -8,3 +8,4 @@ export const GET_ITEMS = "get_items";
 export const GET_ITEM = "get_item";
 export const UPDATE_ITEM = "update_item";
 export const DELETE_ITEM = "delete_item";
+export const GET_ITEMS_OF_USER = "get_items_of_user";

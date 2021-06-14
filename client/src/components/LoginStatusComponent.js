@@ -28,9 +28,14 @@ function LoginStatusComponent(props) {
         <Menu>
           <Menu.Item>
             <div style={{ fontWeight: "bold" }}>{user.id}</div>
-            <div style={{ textAlign: "right" }}>{`안녕하세요 ${user.nickname} 님!`}</div>
+            <div
+              style={{ textAlign: "right" }}
+            >{`안녕하세요 ${user.nickname} 님!`}</div>
           </Menu.Item>
           <Menu.Divider />
+          <Menu.Item key="a1">
+            <a href="/mypage">마이페이지</a>
+          </Menu.Item>
           <Menu.Item key="a0" onClick={logoutHandler}>
             로그아웃
           </Menu.Item>

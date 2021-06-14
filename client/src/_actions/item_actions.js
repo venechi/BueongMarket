@@ -1,5 +1,11 @@
 import axios from "axios";
-import { GET_ITEMS, GET_ITEM, UPDATE_ITEM, DELETE_ITEM } from "./types";
+import {
+  GET_ITEMS,
+  GET_ITEM,
+  UPDATE_ITEM,
+  DELETE_ITEM,
+  GET_ITEMS_OF_USER,
+} from "./types";
 
 export function getItems(searchQuery) {
   let query = "/api";
@@ -32,9 +38,19 @@ export function updateItem(dataToSubmit) {
 }
 
 export function deleteItem(itemId) {
-  const request = axios.get(`/api/item/delete/${itemId}`).then((res) => res.data);
+  const request = axios
+    .get(`/api/item/delete/${itemId}`)
+    .then((res) => res.data);
   return {
     type: DELETE_ITEM,
+    payload: request,
+  };
+}
+
+export function getItemsOfUser() {
+  const request = axios.get(`/api/allitem`).then((res) => res.data);
+  return {
+    type: GET_ITEMS_OF_USER,
     payload: request,
   };
 }

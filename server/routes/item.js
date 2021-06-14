@@ -3,7 +3,7 @@ var router = express.Router();
 var db = require("../public/utils/db");
 const { auth } = require("../public/middleware/auth");
 var multer = require("multer");
-var upload = multer();
+var upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 var fs = require("fs");
 const sharp = require("sharp");
 const sanitizeHtml = require("sanitize-html");
@@ -57,6 +57,12 @@ router.post("/update", auth, upload.array(), function (req, res) {
     if (Array.isArray(files)) files = files.map((file) => JSON.parse(file));
     else files = [JSON.parse(files)];
   }
+
+  const thumbnailWidth = 640,
+    thumbnailHeight = 640,
+    imageWidth = 1920,
+    imageHeight = 1920;
+
   const item = JSON.parse(req.body.item);
   item.title = sanitizeHtml(item.title);
   item.content = sanitizeHtml(item.content);
@@ -74,6 +80,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
           );
         }
         item.itemID = results.insertId;
+        let path = `public/fileserver/${userID}/${item.itemID}/`;
         db.query(
           `INSERT INTO content(id, content) VALUES(${item.itemID}, '${item.content}')`,
           (error, result, fields) => {
@@ -91,14 +98,15 @@ router.post("/update", auth, upload.array(), function (req, res) {
                   return new Promise((resolve, reject) => {
                     fs.writeFile(
                       `${path}/${file.name}`,
-                      file.thumbUrl.replace(/^data:image\/png;base64,/, ""),
+                      file.thumbUrl.split(",")[1],
                       "base64",
                       (err) => {
                         db.query(
                           `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
                           (error, results, fields) => {
-                            if (err) reject(err);
-                            else resolve(true);
+                            if (err || error) {
+                              reject(err);
+                            } else resolve(true);
                           }
                         );
                       }
@@ -115,10 +123,9 @@ router.post("/update", auth, upload.array(), function (req, res) {
                           return res.json({ isUpdateSuccess: false });
                         });
                       }
-                      let path = `public/fileserver/${userID}/${item.itemID}/`;
                       fs.mkdirSync(path + "thumbnail");
                       sharp(path + results[0].filename)
-                        .resize(1920, 1920, "!")
+                        .resize(thumbnailWidth, thumbnailHeight, "!")
                         .toFile(
                           path + "thumbnail/thumbnail.jpg",
                           (err, info) => {
@@ -226,10 +233,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
                         return new Promise((resolve, reject) => {
                           fs.writeFileSync(
                             `${path}/${file.name}`,
-                            file.thumbUrl.replace(
-                              /^data:image\/png;base64,/,
-                              ""
-                            ),
+                            file.thumbUrl.split(",")[1],
                             "base64"
                           );
                           db.query(
@@ -262,7 +266,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
                               recursive: true,
                             });
                             sharp(path + results[0].filename)
-                              .resize(1920, 1920, "!")
+                              .resize(thumbnailWidth, thumbnailHeight, "!")
                               .toFile(
                                 path + "thumbnail/thumbnail.jpg",
                                 (err, info) => {

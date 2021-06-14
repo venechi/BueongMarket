@@ -8,9 +8,10 @@ import CONSTANTS from "../../Constants";
 import MyHeader from "../../MyHeader";
 import { useDispatch } from "react-redux";
 import { getItem, deleteItem } from "../../../_actions/item_actions";
+import { isMobile } from "react-device-detect";
 
 function ItemViewPage(props) {
-  const size = "80vw";
+  const size = "80%";
   let { itemId } = useParams();
   const [user, setuser] = useState();
   const [itemInfo, setitemInfo] = useState();
@@ -64,7 +65,7 @@ function ItemViewPage(props) {
                 <div key={file.filename}>
                   <Image
                     src={`/api/images/${itemInfo.item.id_code}/${itemId}/${file.filename}`}
-                    preview={false}
+                    preview={isMobile ? true : false}
                     width={size}
                     height={size}
                   />

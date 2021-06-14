@@ -6,6 +6,7 @@ var multer = require("multer");
 var upload = multer();
 var fs = require("fs");
 const sharp = require("sharp");
+const sanitizeHtml = require("sanitize-html");
 
 const deleteItem = (userID, itemID, cb) => {
   fs.rmdir(
@@ -57,6 +58,8 @@ router.post("/update", auth, upload.array(), function (req, res) {
     else files = [JSON.parse(files)];
   }
   const item = JSON.parse(req.body.item);
+  item.title = sanitizeHtml(item.title);
+  item.content = sanitizeHtml(item.content);
   if (item.itemID === "new") {
     //새 글 작성
     db.query(
@@ -79,99 +82,75 @@ router.post("/update", auth, upload.array(), function (req, res) {
                 return res.json({ isUpdateSuccess: false });
               });
             }
-            if (files)
-              fs.mkdir(
-                `public/fileserver/${userID}/${item.itemID}`,
-                { recursive: true },
-                (err, path) => {
-                  if (err) {
-                    deleteItem(userID, item.itemID, () => {
-                      return res.json({ isUpdateSuccess: false });
-                    });
-                  }
-                  Promise.all(
-                    files.map((file) => {
-                      fs.writeFile(
-                        `${path}/${file.name}`,
-                        file.thumbUrl.replace(/^data:image\/png;base64,/, ""),
-                        "base64",
-                        (err) =>
-                          new Promise((resolve, reject) => {
+            if (files) {
+              fs.mkdirSync(`public/fileserver/${userID}/${item.itemID}`, {
+                recursive: true,
+              });
+              Promise.all(
+                files.map((file) => {
+                  return new Promise((resolve, reject) => {
+                    fs.writeFile(
+                      `${path}/${file.name}`,
+                      file.thumbUrl.replace(/^data:image\/png;base64,/, ""),
+                      "base64",
+                      (err) => {
+                        db.query(
+                          `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
+                          (error, results, fields) => {
                             if (err) reject(err);
                             else resolve(true);
-                          })
-                      );
-                    })
-                  )
-                    .then(() => {
-                      Promise.all(
-                        files.map((file) => {
-                          db.query(
-                            `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
-                            (error, results, fields) => {
-                              return new Promise((resolve, reject) => {
-                                if (error) reject(error);
-                                else resolve(true);
-                              });
-                            }
-                          );
-                        })
-                      )
-                        .then(() => {
-                          db.query(
-                            `SELECT * FROM photos WHERE id=${item.itemID}`,
-                            (error, results, fields) => {
-                              let path = `public/fileserver/${userID}/${item.itemID}/`;
-                              sharp(path + results[0].filename)
-                                .resize(300, 300, "!")
-                                .toFile(path + "thumbnail.jpg", (err, info) => {
-                                  //todo: 섬네일 경로 재지정할것(사용자가 tumbnail.jpg를 업로드해도 정상작동하도록)
-                                  if (err) {
-                                    deleteItem(userID, item.itemID, () => {
-                                      return res.json({
-                                        isUpdateSuccess: false,
-                                      });
-                                    });
-                                  } else
-                                    return res.json({
-                                      isUpdateSuccess: true,
-                                      itemId: item.itemID,
-                                    });
-                                });
-                            }
-                          );
-                        })
-                        .catch(() => {
-                          deleteItem(userID, item.itemID, () => {
-                            return res.json({ isUpdateSuccess: false });
-                          });
+                          }
+                        );
+                      }
+                    );
+                  });
+                })
+              )
+                .then(() => {
+                  db.query(
+                    `SELECT * FROM photos WHERE id=${item.itemID}`,
+                    (error, results, fields) => {
+                      if (error) {
+                        deleteItem(userID, item.itemID, () => {
+                          return res.json({ isUpdateSuccess: false });
                         });
-                    })
-                    .catch(() => {
-                      deleteItem(userID, item.itemID, () => {
-                        return res.json({ isUpdateSuccess: false });
-                      });
-                    });
-                }
-              );
-            else
+                      }
+                      let path = `public/fileserver/${userID}/${item.itemID}/`;
+                      fs.mkdirSync(path + "thumbnail");
+                      sharp(path + results[0].filename)
+                        .resize(1920, 1920, "!")
+                        .toFile(
+                          path + "thumbnail/thumbnail.jpg",
+                          (err, info) => {
+                            if (err) {
+                              deleteItem(userID, item.itemID, () => {
+                                return res.json({
+                                  isUpdateSuccess: false,
+                                });
+                              });
+                            } else
+                              return res.json({
+                                isUpdateSuccess: true,
+                                itemId: item.itemID,
+                              });
+                          }
+                        );
+                    }
+                  );
+                })
+                .catch(() => {
+                  deleteItem(userID, item.itemID, () => {
+                    return res.json({ isUpdateSuccess: false });
+                  });
+                });
+            } else
               return res.json({ isUpdateSuccess: true, itemId: item.itemID });
           }
         );
       }
     );
   } else {
-    let toPreserve = files
-      .map((file) => {
-        if (file.status) return file.name;
-      })
-      .filter((e) => e);
-    let newFiles = files
-      .map((file) => {
-        if (!file.status) return { name: file.name, thumbUrl: file.thumbUrl };
-      })
-      .filter((e) => e);
-
+    //글 수정
     let itemID = item.itemID;
     db.query(
       `SELECT * FROM item WHERE id=${itemID}`,
@@ -179,130 +158,135 @@ router.post("/update", auth, upload.array(), function (req, res) {
         if (error || results.length === 0)
           return res.json({ isUpdateSuccess: false });
         db.query(
-          `SELECT * FROM photos WHERE id=${itemID}`,
+          `UPDATE item SET title='${item.title}', price=${item.price}, exp_date='${item.exp_date}' WHERE id=${itemID}`,
           (error, results, fields) => {
             if (error) return res.json({ isUpdateSuccess: false });
-            let toDelete = results.map((result) => {
-              return result.filename;
-            });
-            for (let i = 0; i < toPreserve.length; ++i) {
-              let pos = toDelete.indexOf(toPreserve[i]);
-              if (pos !== -1) toDelete.splice(pos, 1);
-            }
-            Promise.all(
-              toDelete.length !== 0
-                ? toDelete.map((filename) => {
-                    fs.rm(
-                      `public/fileserver/${userID}/${itemID}/${filename}`,
-                      (fserr) => {
-                        return db.query(
-                          `DELETE FROM photos WHERE id=${itemID} AND filename='${filename}'`,
-                          (error, results, fields) => {
-                            return new Promise((resolve, reject) => {
-                              if (fserr || error) reject(false);
-                              else resolve(true);
-                            });
-                          }
-                        );
-                      }
-                    );
+            db.query(
+              `UPDATE content SET content='${item.content}' WHERE id=${itemID}`,
+              (error, results, fields) => {
+                if (error) return res.json({ isUpdateSuccess: false });
+                if (!files)
+                  return res.json({
+                    isUpdateSuccess: true,
+                    itemId: itemID,
+                  });
+
+                let toPreserve = files
+                  .map((file) => {
+                    if (file.status) return file.name;
                   })
-                : [
-                    new Promise((resolve, reject) => {
-                      resolve(true);
-                    }),
-                  ]
-            )
-              .then(() => {
+                  .filter((e) => e);
+
+                let newFiles = files
+                  .map((file) => {
+                    if (!file.status)
+                      return { name: file.name, thumbUrl: file.thumbUrl };
+                  })
+                  .filter((e) => e);
+
+                let path = `public/fileserver/${userID}/${itemID}/`;
+
                 db.query(
-                  `UPDATE item SET title='${item.title}', price=${item.price}, exp_date='${item.exp_date}' WHERE id=${itemID}`,
+                  `SELECT * FROM photos WHERE id=${itemID}`,
                   (error, results, fields) => {
                     if (error) return res.json({ isUpdateSuccess: false });
-                    db.query(
-                      `UPDATE content SET content='${item.content}' WHERE id=${itemID}`,
-                      (error, results, fields) => {
-                        if (error) return res.json({ isUpdateSuccess: false });
-                        let path = `public/fileserver/${userID}/${itemID}/`;
-                        Promise.all(
-                          newFiles.length !== 0
-                            ? newFiles.map((file) => {
-                                fs.writeFile(
-                                  `${path}/${file.name}`,
-                                  file.thumbUrl.replace(
-                                    /^data:image\/png;base64,/,
-                                    ""
-                                  ),
-                                  "base64",
-                                  (fserr) => {
-                                    return db.query(
-                                      `INSERT INTO photos VALUES(${itemID}, "${file.name}");`,
-                                      (error, results, fields) => {
-                                        return new Promise(
-                                          (resolve, reject) => {
-                                            if (fserr || error) reject(false);
-                                            else resolve(true);
-                                          }
-                                        );
-                                      }
-                                    );
-                                  }
-                                );
-                              })
-                            : [
-                                new Promise((resolve, reject) => {
-                                  resolve(true);
-                                }),
-                              ]
-                        )
-                          .then(() => {
-                            if (
-                              toDelete.length === 0 &&
-                              newFiles.length === 0
-                            )
+                    let toDelete = results.map((result) => {
+                      return result.filename;
+                    });
+                    for (let i = 0; i < toPreserve.length; ++i) {
+                      let pos = toDelete.indexOf(toPreserve[i]);
+                      if (pos !== -1) toDelete.splice(pos, 1);
+                    }
+                    let tasks = [
+                      new Promise((resolve, reject) => {
+                        resolve(true);
+                      }),
+                    ];
+
+                    tasks.concat(
+                      toDelete.map((filename) => {
+                        return new Promise((resolve, reject) => {
+                          fs.rmSync(
+                            `public/fileserver/${userID}/${itemID}/${filename}`,
+                            { force: true }
+                          );
+                          db.query(
+                            `DELETE FROM photos WHERE id=${itemID} AND filename='${filename}'`,
+                            (error, results, fields) => {
+                              if (error) reject(false);
+                              else resolve(true);
+                            }
+                          );
+                        });
+                      })
+                    );
+
+                    tasks.concat(
+                      newFiles.map((file) => {
+                        return new Promise((resolve, reject) => {
+                          fs.writeFileSync(
+                            `${path}/${file.name}`,
+                            file.thumbUrl.replace(
+                              /^data:image\/png;base64,/,
+                              ""
+                            ),
+                            "base64"
+                          );
+                          db.query(
+                            `INSERT INTO photos VALUES(${itemID}, "${file.name}");`,
+                            (error, results, fields) => {
+                              if (error) reject(false);
+                              else resolve(true);
+                            }
+                          );
+                        });
+                      })
+                    );
+
+                    Promise.all(tasks)
+                      .then(() => {
+                        db.query(
+                          `SELECT * FROM photos WHERE id=${item.itemID}`,
+                          (error, results, fields) => {
+                            if (error)
+                              return res.json({ isUpdateSuccess: false });
+                            fs.rmSync(path + "thumbnail/thumbnail.jpg", {
+                              force: true,
+                            });
+                            if (results.length === 0)
                               return res.json({
                                 isUpdateSuccess: true,
                                 itemId: itemID,
                               });
-                            else
-                              db.query(
-                                `SELECT * FROM photos WHERE id=${item.itemID}`,
-                                (error, results, fields) => {
-                                  if (error)
-                                    return res.json({ isUpdateSuccess: false });
-                                  fs.rmSync(path + "thumbnail.jpg", {
-                                    force: true,
-                                  });
-                                  sharp(path + results[0].filename)
-                                    .resize(300, 300, "!")
-                                    .toFile(
-                                      path + "thumbnail.jpg",
-                                      (err, info) => {
-                                        //todo: 섬네일 경로 재지정할것(사용자가 tumbnail.jpg를 업로드해도 정상작동하도록)
-                                        if (err)
-                                          return res.json({
-                                            isUpdateSuccess: false,
-                                          });
-                                        else
-                                          return res.json({
-                                            isUpdateSuccess: true,
-                                            itemId: itemID,
-                                          });
-                                      }
-                                    );
+                            fs.mkdirSync(path + "thumbnail", {
+                              recursive: true,
+                            });
+                            sharp(path + results[0].filename)
+                              .resize(1920, 1920, "!")
+                              .toFile(
+                                path + "thumbnail/thumbnail.jpg",
+                                (err, info) => {
+                                  if (err)
+                                    return res.json({
+                                      isUpdateSuccess: false,
+                                    });
+                                  else
+                                    return res.json({
+                                      isUpdateSuccess: true,
+                                      itemId: itemID,
+                                    });
                                 }
                               );
-                          })
-                          .catch(() => {
-                            return res.json({ isUpdateSuccess: false });
-                          });
-                      }
-                    );
+                          }
+                        );
+                      })
+                      .catch(() => {
+                        return res.json({ isUpdateSuccess: false });
+                      });
                   }
                 );
-              })
-              .catch(() => {
-                return res.json({ isUpdateSuccess: false });
-              });
+              }
+            );
           }
         );
       }

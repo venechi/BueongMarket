@@ -1,4 +1,5 @@
 client/node_modules/
 server/node_modules/
 client/public/devResources
+server/public/fileserver/
 server/public/privates.js

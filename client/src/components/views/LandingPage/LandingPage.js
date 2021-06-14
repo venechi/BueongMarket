@@ -4,7 +4,7 @@ import { withRouter } from "react-router-dom";
 import ItemComponent from "../../ItemComponent";
 import { getItems } from "../../../_actions/item_actions";
 import "antd/dist/antd.css";
-import { Input, Divider, Button } from "antd";
+import { Input, Divider, Button, Empty } from "antd";
 import CONSTANTS from "../../Constants";
 import MyHeader from "../../MyHeader";
 const { Search } = Input;
@@ -44,23 +44,38 @@ function LandingPage(props) {
           if (query === "") query = undefined;
           search(query);
         }}
-        style={{ paddingBottom: "30px" }}
       />
-      <div style={{ float: "right", paddingRight: "15px" }}>
+      <div
+        style={{
+          zIndex: "1",
+          position: "fixed",
+          bottom: "8vh",
+          right: "3vw",
+          paddingRight: "15px",
+        }}
+      >
         <Button type="primary" shape="round" href="/editor/new">
           + 새 공구 만들기
         </Button>
       </div>
-      <Divider
-        orientation="left"
-        style={{ paddingTop: "10px", paddingBottom: "10px" }}
-      >
+      <Divider orientation="left" style={{ paddingBottom: "10px" }}>
         {searchQuery ? `'${searchQuery}' 검색 결과` : "최근 등록된 공구"}
       </Divider>
       <div display="flex">
-        {Object.entries(items).map((item) => (
-          <ItemComponent key={item[1].id} item={item[1]} />
-        ))}
+        {Object.keys(items).length !== 0 ? (
+          Object.entries(items).map((item) => (
+            <ItemComponent key={item[1].id} item={item[1]} />
+          ))
+        ) : (
+          <Empty
+            description={
+              <span>
+                <div>등록된 공구가 없어요!</div>
+                <div>하단의 새 공구 만들기 버튼을 눌러 공구를 등록해 보세요!</div>
+              </span>
+            }
+          />
+        )}
       </div>
     </MyHeader>
   );

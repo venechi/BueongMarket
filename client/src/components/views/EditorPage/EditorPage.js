@@ -114,8 +114,12 @@ function EditorPage(props) {
     setpreviewVisible(false);
   };
 
+  const disabledDateNTime = (current) => {
+    return current & (current < moment());
+  };
+
+  //todo: 사진 업로드시 심각한 화질 열화 개선할 것.
   //todo: 사진 업로드시 중복되는 이름이 없는지 체크할 것.
-  //todo: html-sanitizer 적용할 것
   document.title = `${CONSTANTS.MARKET_NAME} :: 에디터 페이지`;
   if (!defaultValue.isLoaded) return <LoadingComponent />;
   else
@@ -190,7 +194,6 @@ function EditorPage(props) {
           >
             <Input placeholder={0} allowClear />
           </Form.Item>
-          {/* todo: 현재시간보다 이전시간 선택할 경우 처리 */}
           <label>게시종료일시</label>
           <Form.Item
             name="exp_date"
@@ -201,7 +204,11 @@ function EditorPage(props) {
               },
             ]}
           >
-            <DatePicker showTime />
+            <DatePicker
+              showTime
+              disabledDate={disabledDateNTime}
+              disabledTime={disabledDateNTime}
+            />
           </Form.Item>
           <label>공구 설명</label>
           <Form.Item

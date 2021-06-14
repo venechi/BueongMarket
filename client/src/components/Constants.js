@@ -1,5 +1,5 @@
 const CONSTANTS = {
-  MARKET_NAME: "Beoung Market",
+  MARKET_NAME: "부엉 마켓",
 };
 
 export default CONSTANTS

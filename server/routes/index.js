@@ -16,7 +16,7 @@ router.get("/", function (req, res, next) {
     } ORDER BY id DESC`;
   }
   db.query(sqlQuery, function (error, results, fields) {
-    if (error) return res.status(500).json(error);
+    if (error) return res.json({ isSuccess: false });
     return res.json(results);
   });
 });

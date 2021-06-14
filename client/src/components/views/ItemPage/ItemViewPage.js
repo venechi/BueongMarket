@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, withRouter } from "react-router";
-import { Carousel, Image, Button } from "antd";
+import { Carousel, Image, Button, Tag } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import LoadingComponent from "../../LoadingComponent";
@@ -24,6 +24,11 @@ function ItemViewPage(props) {
       } else return props.history.push("/");
     });
   }, [dispatch, itemId, props.history, setuser]);
+
+  useEffect(() => {
+    if (itemInfo)
+      document.title = `${CONSTANTS.MARKET_NAME} :: 상세페이지 - ${itemInfo.item.title}`;
+  }, [itemInfo]);
 
   function PrevArrow(props) {
     const { className, style, onClick } = props;
@@ -50,11 +55,19 @@ function ItemViewPage(props) {
   }
 
   if (itemInfo) {
-    document.title = `${CONSTANTS.MARKET_NAME} :: 상세페이지 - ${itemInfo.item.title}`;
     return (
       <MyHeader>
         <div style={{ textAlign: "center" }}>
           <div style={{ width: size, display: "inline-block" }}>
+            <div
+              style={{ display: "flex", alignItems: "start", padding: "5px" }}
+            >
+              {itemInfo.item.item_class === 0 ? (
+                <Tag color="#87d068">지역</Tag>
+              ) : (
+                <Tag color="#2db7f5">전국</Tag>
+              )}
+            </div>
             <Carousel
               arrows
               draggable

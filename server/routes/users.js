@@ -31,7 +31,12 @@ router.post("/checknickname", function (req, res, next) {
 
 router.post("/login", function (req, res, next) {
   User.login(req.body.id, req.body.pw, (result) => {
-    res.cookie("x_auth", result.token).json(result.payload);
+    res
+      .cookie("x_auth", result.token, {
+        maxAge: 1000 * 60 * 60 * 24,
+        sameSite: "strict",
+      })
+      .json(result.payload);
   });
 });
 

@@ -1,9 +1,28 @@
 import React from "react";
 import "antd/dist/antd.css";
-import { Row, Col, Image, Card } from "antd";
+import { Image, Card, Tag } from "antd";
 import { isMobile, isTablet } from "react-device-detect";
 
 function ItemComponent(props) {
+  const title = (
+    <span>
+      {props.item.item_class === 0 ? (
+        <Tag color="#87d068">지역</Tag>
+      ) : (
+        <Tag color="#2db7f5">전국</Tag>
+      )}
+      {props.item.title}
+    </span>
+  );
+
+  const content = (
+    <span>
+      <div>{`가격: ${props.item.price}원`}</div>
+      <div>{`🧭 ${props.item.loc}`}</div>
+      <div>{`⏰ ${props.item.reg_date} ~ ${props.item.exp_date}`}</div>
+    </span>
+  );
+
   const forMobile = (
     <Card
       cover={
@@ -16,41 +35,35 @@ function ItemComponent(props) {
           }}
         />
       }
-      headStyle={{ fontWeight: "bolder", fontSize: "30px" }}
+      headStyle={{ fontWeight: "bolder", fontSize: "25px" }}
       bodyStyle={{ fontSize: "15px" }}
-      title={props.item.title}
+      title={title}
     >
-      <div>{`가격: ${props.item.price}원`}</div>
-      <div>{`🧭 ${props.item.loc}`}</div>
-      <div>{`⏰ ${props.item.reg_date} ~ ${props.item.exp_date}`}</div>
+      {content}
     </Card>
   );
 
   const forDesktop = (
-    <Row>
-      <Col flex="300px">
-        <Image
-          src={`/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`}
-          preview={false}
-          onError={(e) => {
-            e.target.src =
-              "/api/images/default/error/300px-No_image_available.svg.webp";
-          }}
-        />
-      </Col>
-      <Col flex="auto">
-        <Card
-          headStyle={{ fontWeight: "bolder", fontSize: "30px" }}
-          bodyStyle={{ fontSize: "15px" }}
-          style={{ width: "100%", height: "100%" }}
-          title={props.item.title}
-        >
-          <div>{`가격: ${props.item.price}원`}</div>
-          <div>{`🧭 ${props.item.loc}`}</div>
-          <div>{`⏰ ${props.item.reg_date} ~ ${props.item.exp_date}`}</div>
-        </Card>
-      </Col>
-    </Row>
+    <div style={{ display: "flex" }}>
+      <Image
+        src={`/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`}
+        preview={false}
+        width={"300px"}
+        height={"300px"}
+        onError={(e) => {
+          e.target.src =
+            "/api/images/default/error/300px-No_image_available.svg.webp";
+        }}
+      />
+      <Card
+        headStyle={{ fontWeight: "bolder", fontSize: "25px" }}
+        bodyStyle={{ fontSize: "15px" }}
+        style={{ width: "calc(100% - 300px)", height: "300px" }}
+        title={title}
+      >
+        {content}
+      </Card>
+    </div>
   );
 
   return (

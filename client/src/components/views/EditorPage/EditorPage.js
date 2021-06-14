@@ -9,6 +9,7 @@ import {
   Input,
   DatePicker,
   Alert,
+  Radio,
 } from "antd";
 import "antd/dist/antd.css";
 import moment from "moment";
@@ -43,6 +44,7 @@ function EditorPage(props) {
     price: 0,
     exp_date: moment().add(7, "days"),
     content: null,
+    item_class: 0,
     isLoaded: false,
   });
   const [duplicatedFileName, setduplicatedFileName] = useState(false);
@@ -199,7 +201,18 @@ function EditorPage(props) {
         <Divider dashed orientation="left">
           내용 작성
         </Divider>
+
         <Form onFinish={handleUpload} initialValues={defaultValue}>
+          <Form.Item
+            name="item_class"
+            label="공구 대상 선택"
+          >
+            <Radio.Group>
+              <Radio value={0}>지역 대상 공구</Radio>
+              <Radio value={1}>전국 대상 공구</Radio>
+            </Radio.Group>
+          </Form.Item>
+
           <label>제목</label>
           <Form.Item
             name="title"
@@ -210,7 +223,7 @@ function EditorPage(props) {
               },
             ]}
           >
-            <Input id="title" placeholder="제목" maxLength={30} allowClear />
+            <Input placeholder="제목" maxLength={30} allowClear />
           </Form.Item>
           <label>가격</label>
           <Form.Item

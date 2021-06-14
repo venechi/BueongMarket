@@ -70,7 +70,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
   if (item.itemID === "new") {
     //새 글 작성
     db.query(
-      `INSERT INTO item(title, price, loc, reg_date, exp_date, id_code) VALUES('${item.title}', ${item.price}, '서울시 동대문구 이문동', now(), '${item.exp_date}', ${userID});`,
+      `INSERT INTO item(title, price, loc, reg_date, exp_date, id_code, item_class) VALUES('${item.title}', ${item.price}, '서울시 동대문구 이문동', now(), '${item.exp_date}', ${userID}, ${item.item_class});`,
       (error, results, fields) => {
         if (error) {
           db.query(
@@ -185,7 +185,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
         if (error || results.length === 0)
           return res.json({ isUpdateSuccess: false });
         db.query(
-          `UPDATE item SET title='${item.title}', price=${item.price}, exp_date='${item.exp_date}' WHERE id=${itemID}`,
+          `UPDATE item SET title='${item.title}', price=${item.price}, exp_date='${item.exp_date}', item_class=${item.item_class} WHERE id=${itemID}`,
           (error, results, fields) => {
             if (error) return res.json({ isUpdateSuccess: false });
             db.query(

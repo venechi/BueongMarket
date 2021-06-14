@@ -7,6 +7,7 @@ var upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 var fs = require("fs");
 const sharp = require("sharp");
 const sanitizeHtml = require("sanitize-html");
+const { resolve } = require("path");
 
 const deleteItem = (userID, itemID, cb) => {
   fs.rmdir(
@@ -96,54 +97,73 @@ router.post("/update", auth, upload.array(), function (req, res) {
               Promise.all(
                 files.map((file) => {
                   return new Promise((resolve, reject) => {
-                    fs.writeFile(
-                      `${path}/${file.name}`,
-                      file.thumbUrl.split(",")[1],
-                      "base64",
-                      (err) => {
-                        db.query(
-                          `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
-                          (error, results, fields) => {
-                            if (err || error) {
-                              reject(err);
-                            } else resolve(true);
-                          }
-                        );
-                      }
-                    );
+                    sharp(Buffer.from(file.thumbUrl.split(",")[1], "base64"))
+                      .resize(imageWidth, imageHeight, "!")
+                      .toBuffer((err, buffer, info) => {
+                        if (err) reject(err);
+                        else resolve({ buffer: buffer, name: file.name });
+                      });
                   });
                 })
               )
-                .then(() => {
-                  db.query(
-                    `SELECT * FROM photos WHERE id=${item.itemID}`,
-                    (error, results, fields) => {
-                      if (error) {
-                        deleteItem(userID, item.itemID, () => {
-                          return res.json({ isUpdateSuccess: false });
-                        });
-                      }
-                      fs.mkdirSync(path + "thumbnail");
-                      sharp(path + results[0].filename)
-                        .resize(thumbnailWidth, thumbnailHeight, "!")
-                        .toFile(
-                          path + "thumbnail/thumbnail.jpg",
-                          (err, info) => {
-                            if (err) {
-                              deleteItem(userID, item.itemID, () => {
-                                return res.json({
-                                  isUpdateSuccess: false,
-                                });
-                              });
-                            } else
-                              return res.json({
-                                isUpdateSuccess: true,
-                                itemId: item.itemID,
-                              });
+                .then((files) => {
+                  Promise.all(
+                    files.map((file) => {
+                      return new Promise((resolve, reject) => {
+                        fs.writeFile(
+                          `${path}/${file.name}`,
+                          file.buffer,
+                          { flag: "w" },
+                          (err) => {
+                            db.query(
+                              `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
+                              (error, results, fields) => {
+                                if (err || error) {
+                                  reject(err);
+                                } else resolve(true);
+                              }
+                            );
                           }
                         );
-                    }
-                  );
+                      });
+                    })
+                  )
+                    .then(() => {
+                      db.query(
+                        `SELECT * FROM photos WHERE id=${item.itemID}`,
+                        (error, results, fields) => {
+                          if (error) {
+                            deleteItem(userID, item.itemID, () => {
+                              return res.json({ isUpdateSuccess: false });
+                            });
+                          }
+                          fs.mkdirSync(path + "thumbnail");
+                          sharp(path + results[0].filename)
+                            .resize(thumbnailWidth, thumbnailHeight, "!")
+                            .toFile(
+                              path + "thumbnail/thumbnail.jpg",
+                              (err, info) => {
+                                if (err) {
+                                  deleteItem(userID, item.itemID, () => {
+                                    return res.json({
+                                      isUpdateSuccess: false,
+                                    });
+                                  });
+                                } else
+                                  return res.json({
+                                    isUpdateSuccess: true,
+                                    itemId: item.itemID,
+                                  });
+                              }
+                            );
+                        }
+                      );
+                    })
+                    .catch(() => {
+                      deleteItem(userID, item.itemID, () => {
+                        return res.json({ isUpdateSuccess: false });
+                      });
+                    });
                 })
                 .catch(() => {
                   deleteItem(userID, item.itemID, () => {
@@ -204,11 +224,7 @@ router.post("/update", auth, upload.array(), function (req, res) {
                       let pos = toDelete.indexOf(toPreserve[i]);
                       if (pos !== -1) toDelete.splice(pos, 1);
                     }
-                    let tasks = [
-                      new Promise((resolve, reject) => {
-                        resolve(true);
-                      }),
-                    ];
+                    let tasks = [Promise.resolve(true)];
 
                     tasks.concat(
                       toDelete.map((filename) => {
@@ -228,61 +244,103 @@ router.post("/update", auth, upload.array(), function (req, res) {
                       })
                     );
 
-                    tasks.concat(
-                      newFiles.map((file) => {
-                        return new Promise((resolve, reject) => {
-                          fs.writeFileSync(
-                            `${path}/${file.name}`,
-                            file.thumbUrl.split(",")[1],
-                            "base64"
-                          );
-                          db.query(
-                            `INSERT INTO photos VALUES(${itemID}, "${file.name}");`,
-                            (error, results, fields) => {
-                              if (error) reject(false);
-                              else resolve(true);
-                            }
-                          );
-                        });
-                      })
-                    );
-
                     Promise.all(tasks)
                       .then(() => {
-                        db.query(
-                          `SELECT * FROM photos WHERE id=${item.itemID}`,
-                          (error, results, fields) => {
-                            if (error)
-                              return res.json({ isUpdateSuccess: false });
-                            fs.rmSync(path + "thumbnail/thumbnail.jpg", {
-                              force: true,
-                            });
-                            if (results.length === 0)
-                              return res.json({
-                                isUpdateSuccess: true,
-                                itemId: itemID,
-                              });
-                            fs.mkdirSync(path + "thumbnail", {
-                              recursive: true,
-                            });
-                            sharp(path + results[0].filename)
-                              .resize(thumbnailWidth, thumbnailHeight, "!")
-                              .toFile(
-                                path + "thumbnail/thumbnail.jpg",
-                                (err, info) => {
-                                  if (err)
-                                    return res.json({
-                                      isUpdateSuccess: false,
-                                    });
+                        Promise.all(
+                          newFiles.map((file) => {
+                            return new Promise((resolve, reject) => {
+                              sharp(
+                                Buffer.from(
+                                  file.thumbUrl.split(",")[1],
+                                  "base64"
+                                )
+                              )
+                                .resize(imageWidth, imageHeight, "!")
+                                .toBuffer((err, buffer, info) => {
+                                  if (err) reject(err);
                                   else
-                                    return res.json({
-                                      isUpdateSuccess: true,
-                                      itemId: itemID,
+                                    resolve({
+                                      buffer: buffer,
+                                      name: file.name,
                                     });
-                                }
-                              );
-                          }
-                        );
+                                });
+                            });
+                          })
+                        )
+                          .then((files) => {
+                            Promise.all(
+                              files.map((file) => {
+                                return new Promise((resolve, reject) => {
+                                  fs.writeFile(
+                                    `${path}/${file.name}`,
+                                    file.buffer,
+                                    { flag: "w" },
+                                    (err) => {
+                                      db.query(
+                                        `INSERT INTO photos VALUES(${item.itemID}, "${file.name}");`,
+                                        (error, results, fields) => {
+                                          if (err || error) {
+                                            reject(err);
+                                          } else resolve(true);
+                                        }
+                                      );
+                                    }
+                                  );
+                                });
+                              })
+                            )
+                              .then(() => {
+                                db.query(
+                                  `SELECT * FROM photos WHERE id=${item.itemID}`,
+                                  (error, results, fields) => {
+                                    if (error)
+                                      return res.json({
+                                        isUpdateSuccess: false,
+                                      });
+                                    fs.rmSync(
+                                      path + "thumbnail/thumbnail.jpg",
+                                      {
+                                        force: true,
+                                      }
+                                    );
+                                    if (results.length === 0)
+                                      return res.json({
+                                        isUpdateSuccess: true,
+                                        itemId: itemID,
+                                      });
+                                    fs.mkdirSync(path + "thumbnail", {
+                                      recursive: true,
+                                    });
+                                    sharp(path + results[0].filename)
+                                      .resize(
+                                        thumbnailWidth,
+                                        thumbnailHeight,
+                                        "!"
+                                      )
+                                      .toFile(
+                                        path + "thumbnail/thumbnail.jpg",
+                                        (err, info) => {
+                                          if (err)
+                                            return res.json({
+                                              isUpdateSuccess: false,
+                                            });
+                                          else
+                                            return res.json({
+                                              isUpdateSuccess: true,
+                                              itemId: itemID,
+                                            });
+                                        }
+                                      );
+                                  }
+                                );
+                              })
+                              .catch(() => {
+                                return res.json({ isUpdateSuccess: false });
+                              });
+                          })
+                          .catch(() => {
+                            return res.json({ isUpdateSuccess: false });
+                          });
                       })
                       .catch(() => {
                         return res.json({ isUpdateSuccess: false });

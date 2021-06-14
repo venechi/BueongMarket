@@ -10,3 +10,4 @@ export const UPDATE_ITEM = "update_item";
 export const DELETE_ITEM = "delete_item";
 export const GET_ITEMS_OF_USER = "get_items_of_user";
 export const UPDATE_COMMENT = "update_comment";
+export const GET_GEOCODE = "get_geocode";

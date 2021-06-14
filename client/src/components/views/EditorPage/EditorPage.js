@@ -16,9 +16,11 @@ import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
 import { useDispatch } from "react-redux";
 import { getItem, updateItem } from "../../../_actions/item_actions";
+import { getGeocode } from "../../../_actions/api_actions";
 import MyHeader from "../../MyHeader";
 import LoadingComponent from "../../LoadingComponent";
 import CONSTANTS from "../../Constants";
+import { geolocated } from "react-geolocated";
 
 function getBase64(file) {
   return new Promise((resolve, reject) => {
@@ -44,15 +46,58 @@ function EditorPage(props) {
     price: 0,
     exp_date: moment().add(7, "days"),
     content: null,
-    item_class: 0,
+    loc: "전국",
+    item_class: 1,
     isLoaded: false,
   });
   const [duplicatedFileName, setduplicatedFileName] = useState(false);
+  const [isWholeNation, setisWholeNation] = useState(true);
 
   useEffect(() => {
     if (defaultValue.isLoaded === false) {
       if (itemId === "new") {
-        setdefaultValue({ ...defaultValue, isLoaded: true });
+        if (props.isGeolocationAvailable) {
+          if (props.isGeolocationEnabled !== null) {
+            if (props.isGeolocationEnabled) {
+              if (props.coords) {
+                dispatch(
+                  getGeocode({
+                    lat: props.coords.latitude,
+                    long: props.coords.longitude,
+                  })
+                ).then(function (res) {
+                  let loc = res.payload.localityInfo.administrative
+                    .filter(
+                      (e) =>
+                        e.adminLevel === 4 ||
+                        e.adminLevel === 6 ||
+                        e.adminLevel === 8 ||
+                        e.adminLevel === 10
+                    )
+                    .reduce((acc, cur) => acc + " " + cur.name, "")
+                    .trim();
+                  setisWholeNation(false);
+                  setdefaultValue({
+                    ...defaultValue,
+                    loc: loc,
+                    item_class: 0,
+                    isLoaded: true,
+                  });
+                });
+              }
+            } else {
+              setdefaultValue({
+                ...defaultValue,
+                isLoaded: true,
+              });
+            }
+          }
+        } else {
+          setdefaultValue({
+            ...defaultValue,
+            isLoaded: true,
+          });
+        }
       } else {
         dispatch(getItem(itemId)).then(function (res) {
           const user = JSON.parse(localStorage.getItem("user"));
@@ -72,12 +117,14 @@ function EditorPage(props) {
                 };
               })
             );
+            setisWholeNation(item.item_class === 1);
             setdefaultValue({
               title: item.title,
               price: item.price,
               exp_date: moment(item.exp_date),
               content: item.content,
               isLoaded: true,
+              loc: item.loc,
               item_class: item.item_class,
             });
           } else return props.history.push("/");
@@ -91,6 +138,9 @@ function EditorPage(props) {
     setdefaultValue,
     setfiles,
     defaultValue,
+    props.isGeolocationEnabled,
+    props.isGeolocationAvailable,
+    props.coords,
   ]);
 
   const handleUpload = async (values) => {
@@ -205,8 +255,15 @@ function EditorPage(props) {
 
         <Form onFinish={handleUpload} initialValues={defaultValue}>
           <Form.Item name="item_class" label="공구 대상 선택">
-            <Radio.Group>
-              <Radio value={0}>지역 대상 공구</Radio>
+            <Radio.Group
+              disabled={itemId !== "new"}
+              onChange={(e) => {
+                setisWholeNation(e.target.value === 1);
+              }}
+            >
+              <Radio value={0} disabled={!props.isGeolocationEnabled}>
+                지역 대상 공구
+              </Radio>
               <Radio value={1}>전국 대상 공구</Radio>
             </Radio.Group>
           </Form.Item>
@@ -235,6 +292,16 @@ function EditorPage(props) {
           >
             <Input placeholder={0} allowClear />
           </Form.Item>
+
+          {isWholeNation ? null : (
+            <div>
+              <label>지역</label>
+              <Form.Item name="loc">
+                <Input placeholder="자동으로 입력됩니다." disabled />
+              </Form.Item>
+            </div>
+          )}
+
           <label>게시종료일시</label>
           <Form.Item
             name="exp_date"
@@ -273,4 +340,4 @@ function EditorPage(props) {
     );
 }
 
-export default withRouter(EditorPage);
+export default withRouter(geolocated()(EditorPage));

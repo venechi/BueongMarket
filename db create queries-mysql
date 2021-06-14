@@ -39,3 +39,15 @@ CREATE TABLE login_users(
 	token CHAR(255) UNIQUE NOT NULL,
 	FOREIGN KEY(id_code) REFERENCES users(id_code)
 );
+
+CREATE TABLE comments(
+	comment_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	parent_id INT UNSIGNED,
+	item_id INT UNSIGNED NOT NULL,
+	user_id INT UNSIGNED NOT NULL,
+	content TEXT NOT NULL NOT NULL,
+	reg_date DATETIME NOT NULL,
+	FOREIGN KEY(parent_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
+	FOREIGN KEY(item_id) REFERENCES item(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES users(id_code) ON DELETE CASCADE
+);

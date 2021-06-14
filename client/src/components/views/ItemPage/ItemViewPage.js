@@ -1,24 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import axios from "axios";
-import { Carousel, Spin, Image, Button } from "antd";
+import { Carousel, Image, Button } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
+import LoadingComponent from "../../LoadingComponent";
+import CONSTANTS from "../../Constants";
 
 function ItemViewPage() {
+  const size = "600px";
   let { itemId } = useParams();
   const [itemInfo, setitemInfo] = useState();
   useEffect(() => {
     axios.get(`/api/item/${itemId}`).then((res) => {
       setitemInfo(res.data);
     });
-  }, []);
+  }, [itemId]);
 
+  
   if (itemInfo) {
-    console.log(itemInfo.item);
+    document.title = `${CONSTANTS.MARKET_NAME} - ${itemInfo.item.title} :: 상세페이지`
     return (
-      <div style={{ textAlign: "center" }}>
-        <div style={{ width: "500px", display: "inline-block" }}>
+      <div style={{ textAlign: "center", marginTop:"100px"}}>
+        <div style={{ width: size, display: "inline-block" }}>
           <Carousel
             arrows
             draggable
@@ -34,31 +38,32 @@ function ItemViewPage() {
                 <Image
                   src={`/devResources/${file.filename}`}
                   preview={false}
-                  lineHeight="500px"
-                  width="500px"
-                  height="500px"
+                  lineHeight={size}
+                  width={size}
+                  height={size}
                 />
               </div>
             ))}
           </Carousel>
         </div>
-        <h1>{itemInfo.item.title}</h1>
-        <p>
-          <div>{`가격: ${itemInfo.item.price}원`}</div>
-          <div>{`🧭 ${itemInfo.item.loc}`}</div>
-          <div>{`⏰ ${itemInfo.item.reg_date} ~ ${itemInfo.item.exp_date}`}</div>
-        </p>
-        <p>
-          <div>{itemInfo.item.content}</div>
-        </p>
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{ display: "inline-block", width: size, textAlign: "left" }}
+          >
+            <h1>{itemInfo.item.title}</h1>
+            <p>
+              <div>{`가격: ${itemInfo.item.price}원`}</div>
+              <div>{`🧭 ${itemInfo.item.loc}`}</div>
+              <div>{`⏰ ${itemInfo.item.reg_date} ~ ${itemInfo.item.exp_date}`}</div>
+            </p>
+            <p>
+              <div>{itemInfo.item.content}</div>
+            </p>
+          </div>
+        </div>
       </div>
     );
-  } else
-    return (
-      <div style={{ "text-align": "center", padding: "50px" }}>
-        <Spin tip="Loading..."></Spin>
-      </div>
-    );
+  } else return <LoadingComponent />;
 }
 
 export default ItemViewPage;

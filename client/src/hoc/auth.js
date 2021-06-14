@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { auth } from "../_actions/user_actions";
 
-export default function (SpecificComponent, option, adminRoute = null) {
+export default function foo(SpecificComponent, option, adminRoute = null) {
   //option
   //null => 아무나 출입 가능
   //true => 조건(보통 로그인)에 맞으면 출입 가능
@@ -28,7 +28,7 @@ export default function (SpecificComponent, option, adminRoute = null) {
           }
         }
       });
-    }, []);
+    }, [dispatch, props]);
     return <SpecificComponent />;
   }
 

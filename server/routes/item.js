@@ -77,7 +77,11 @@ router.post("/update", auth, upload.array(), function (req, res) {
   if (item.itemID === "new") {
     //새 글 작성
     db.query(
-      `INSERT INTO item(title, price, loc, reg_date, exp_date, id_code, item_class) VALUES('${item.title}', ${item.price}, '서울시 동대문구 이문동', now(), '${item.exp_date}', ${userID}, ${item.item_class});`,
+      `INSERT INTO item(title, price, loc, reg_date, exp_date, id_code, item_class) VALUES('${
+        item.title
+      }', ${item.price}, '${
+        item.item_class === 1 ? "전국" : item.loc
+      }', now(), '${item.exp_date}', ${userID}, ${item.item_class});`,
       (error, results, fields) => {
         if (error) {
           db.query(

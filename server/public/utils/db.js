@@ -1,8 +1,8 @@
 var mysql = require("mysql");
-import { dbInfo } from "../privates";
-var connection = mysql.createConnection();
+var privates = require("../privates");
+var connection = mysql.createConnection(privates.dbInfo);
 
-connection.connect(dbInfo);
+connection.connect();
 
 // connection.query("SELECT 1 + 1 AS solution", function (error, results, fields) {
 //   if (error) throw error;

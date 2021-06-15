@@ -5,7 +5,7 @@ import ItemComponent from "../../ItemComponent";
 import { getItems } from "../../../_actions/item_actions";
 import "antd/dist/antd.css";
 import { Input, Divider, Button, Empty, Radio } from "antd";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 import MyHeader from "../../MyHeader";
 import InfiniteScroll from "react-infinite-scroll-component";
 import LoadingComponent from "../../LoadingComponent";

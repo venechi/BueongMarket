@@ -5,7 +5,7 @@ import { withRouter } from "react-router-dom";
 import { Input, Button, Form } from "antd";
 import "antd/dist/antd.css";
 import MyHeader from "../../MyHeader";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 
 
 function LoginPage(props) {

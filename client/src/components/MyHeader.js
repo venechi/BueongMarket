@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout } from "antd";
 import "antd/dist/antd.css";
-import CONSTANTS from "./Constants";
+import CONSTANTS from "../Constants";
 import LoginStatusComponent from "./LoginStatusComponent";
 const { Header, Content, Footer } = Layout;
 

@@ -5,10 +5,10 @@ CREATE TABLE item(
 	loc CHAR(30) NOT NULL,
 	reg_date DATETIME NOT NULL,
 	exp_date DATETIME NOT NULL,
-	id_code INT UNSINGED,
+	id_code INT UNSIGNED,
 	item_class TINYINT UNSIGNED NOT NULL DEFAULT 0,
 	PRIMARY KEY(id),
-	FOREIGN KEY(id_code), REFERENCES users(id_code)
+	FOREIGN KEY(id_code) REFERENCES users(id_code)
 );
 
 CREATE TABLE content(

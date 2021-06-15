@@ -2,7 +2,7 @@ import { Divider, Empty } from "antd";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { getItemsOfUser } from "../../../_actions/item_actions";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 import MyHeader from "../../MyHeader";
 import InfiniteScroll from "react-infinite-scroll-component";
 import LoadingComponent from "../../LoadingComponent";

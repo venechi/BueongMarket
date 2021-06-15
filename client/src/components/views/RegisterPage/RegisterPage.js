@@ -9,7 +9,7 @@ import {
   checkNickname,
 } from "../../../_actions/user_actions";
 import MyHeader from "../../MyHeader";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 
 function RegisterPage(props) {
   const dispatch = useDispatch();

@@ -3,6 +3,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var bodyParser = require("body-parser");
+var cors = require("cors");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
@@ -11,6 +12,7 @@ var imagesRouter = require("./routes/images");
 
 var app = express();
 
+app.use(cors({ origin: "http://localhost:5000", credentials: true }));
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

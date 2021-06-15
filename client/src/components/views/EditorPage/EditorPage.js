@@ -19,7 +19,7 @@ import { getItem, updateItem } from "../../../_actions/item_actions";
 import { getGeocode } from "../../../_actions/api_actions";
 import MyHeader from "../../MyHeader";
 import LoadingComponent from "../../LoadingComponent";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 import { geolocated } from "react-geolocated";
 
 function getBase64(file) {

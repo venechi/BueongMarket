@@ -1,4 +1,5 @@
 import axios from "axios";
+import CONSTANTS from "../Constants";
 import {
   LOGIN_USER,
   LOGOUT_USER,
@@ -10,7 +11,9 @@ import {
 
 export function loginUser(dataToSubmit) {
   const request = axios
-    .post("/api/users/login", dataToSubmit)
+    .post(CONSTANTS.API_SERVER + "/api/users/login", dataToSubmit, {
+      withCredentials: true,
+    })
     .then((res) => res.data);
   return {
     type: LOGIN_USER,
@@ -19,7 +22,9 @@ export function loginUser(dataToSubmit) {
 }
 
 export function logout() {
-  const request = axios.get("/api/users/logout").then((res) => res.data);
+  const request = axios
+    .get(CONSTANTS.API_SERVER + "/api/users/logout", { withCredentials: true })
+    .then((res) => res.data);
   return {
     type: LOGOUT_USER,
     payload: request,
@@ -28,7 +33,9 @@ export function logout() {
 
 export function registerUser(dataToSubmit) {
   const request = axios
-    .post("/api/users/register", dataToSubmit)
+    .post(CONSTANTS.API_SERVER + "/api/users/register", dataToSubmit, {
+      withCredentials: true,
+    })
     .then((res) => res.data);
   return {
     type: REGISTER_USER,
@@ -38,7 +45,9 @@ export function registerUser(dataToSubmit) {
 
 export function checkID(dataToSubmit) {
   const request = axios
-    .post("/api/users/checkid", dataToSubmit)
+    .post(CONSTANTS.API_SERVER + "/api/users/checkid", dataToSubmit, {
+      withCredentials: true,
+    })
     .then((res) => res.data);
   return {
     type: CHECK_ID,
@@ -48,7 +57,9 @@ export function checkID(dataToSubmit) {
 
 export function checkNickname(dataToSubmit) {
   const request = axios
-    .post("/api/users/checknickname", dataToSubmit)
+    .post(CONSTANTS.API_SERVER + "/api/users/checknickname", dataToSubmit, {
+      withCredentials: true,
+    })
     .then((res) => res.data);
   return {
     type: CHECK_NICKNAME,
@@ -57,7 +68,9 @@ export function checkNickname(dataToSubmit) {
 }
 
 export function auth() {
-  const request = axios.get("/api/users/auth").then((res) => res.data);
+  const request = axios
+    .get(CONSTANTS.API_SERVER + "/api/users/auth", { withCredentials: true })
+    .then((res) => res.data);
   return {
     type: AUTH_USER,
     payload: request,

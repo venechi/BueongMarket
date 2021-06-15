@@ -2,6 +2,7 @@ import React from "react";
 import "antd/dist/antd.css";
 import { Image, Card, Tag } from "antd";
 import { isMobile, isTablet } from "react-device-detect";
+import CONSTANTS from "../Constants";
 
 function ItemComponent(props) {
   const title = (
@@ -27,10 +28,14 @@ function ItemComponent(props) {
     <Card
       cover={
         <Image
-          src={`/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`}
+          src={
+            CONSTANTS.API_SERVER +
+            `/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`
+          }
           preview={false}
           onError={(e) => {
             e.target.src =
+              CONSTANTS.API_SERVER +
               "/api/images/default/error/300px-No_image_available.svg.webp";
           }}
         />
@@ -46,12 +51,16 @@ function ItemComponent(props) {
   const forDesktop = (
     <div style={{ display: "flex" }}>
       <Image
-        src={`/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`}
+        src={
+          CONSTANTS.API_SERVER +
+          `/api/images/${props.item.id_code}/${props.item.id}/thumbnail/thumbnail.jpg`
+        }
         preview={false}
         width={"300px"}
         height={"300px"}
         onError={(e) => {
           e.target.src =
+            CONSTANTS.API_SERVER +
             "/api/images/default/error/300px-No_image_available.svg.webp";
         }}
       />

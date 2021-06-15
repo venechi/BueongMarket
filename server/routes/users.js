@@ -35,6 +35,7 @@ router.post("/login", function (req, res, next) {
       .cookie("x_auth", result.token, {
         maxAge: 1000 * 60 * 60 * 24,
         sameSite: "strict",
+        httpOnly: true,
       })
       .json(result.payload);
   });
@@ -43,7 +44,9 @@ router.post("/login", function (req, res, next) {
 router.get("/logout", function (req, res, next) {
   let token = req.cookies.x_auth;
   User.logout(token, (result) => {
-    res.clearCookie("x_auth").json(result);
+    res
+      .clearCookie("x_auth", { sameSite: "strict", httpOnly: true })
+      .json(result);
   });
 });
 

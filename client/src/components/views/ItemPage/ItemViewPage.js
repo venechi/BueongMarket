@@ -13,7 +13,7 @@ import {
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import LoadingComponent from "../../LoadingComponent";
-import CONSTANTS from "../../Constants";
+import CONSTANTS from "../../../Constants";
 import MyHeader from "../../MyHeader";
 import { useDispatch } from "react-redux";
 import {
@@ -184,7 +184,7 @@ function ItemViewPage(props) {
               {itemInfo.photoList.map((file) => (
                 <div key={file.filename}>
                   <Image
-                    src={`/api/images/${itemInfo.item.id_code}/${itemId}/${file.filename}`}
+                    src={CONSTANTS.API_SERVER + `/api/images/${itemInfo.item.id_code}/${itemId}/${file.filename}`}
                     preview={isMobile ? true : false}
                   />
                 </div>

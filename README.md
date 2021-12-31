@@ -1,17 +1,4 @@
 # BueongMarket
-Demo page : https://bueong.hopto.org
-
-
-This project is started for my portfolio.
-
-It's under developing now.
-
-This project uses : Nginx + React + Express + Node.js + MySQL
-
-used for css : Ant design
-
-It's developed on Windows10.
-
-Demo page is running on Ubuntu 20.04 LTS.
-
-* this repository doesn't have the codes related to ssl.
+자취생 혹은 1인 가구를 대상으로 마트 등에서 대용량으로 파는 물품 등의 공동구매를 지원하는 플랫폼
+front-end : Nginx + React + Ant design(css)
+back-end : Express + Node.js + MySQL
